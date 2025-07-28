@@ -1,0 +1,1997 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explorador Mundial Interactivo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --primary-dark: #2980b9;
+            --secondary-color: #2ecc71;
+            --danger-color: #e74c3c;
+            --warning-color: #f39c12;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+            --text-color: #34495e;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+            --border-radius: 8px;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Open Sans', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+            color: var(--text-color);
+            line-height: 1.6;
+            transition: var(--transition);
+        }
+        
+        body.dark-theme {
+            background-color: #121212;
+            color: #f0f0f0;
+            --text-color: #f0f0f0;
+            --light-color: #333;
+            --dark-color: #f0f0f0;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px 0;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+        
+        .dark-theme header {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+        }
+        
+        h1 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            margin: 0;
+            font-size: 2.5rem;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+        }
+        
+        .subtitle {
+            font-weight: 400;
+            font-size: 1.2rem;
+            margin-top: 10px;
+            opacity: 0.9;
+        }
+        
+        .search-container {
+            margin: 25px 0;
+            text-align: center;
+            position: relative;
+        }
+        
+        #country-search {
+            padding: 12px 20px;
+            width: 100%;
+            max-width: 500px;
+            border: 2px solid #ddd;
+            border-radius: 30px;
+            font-size: 1rem;
+            transition: var(--transition);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            background-color: white;
+            color: var(--text-color);
+        }
+        
+        .dark-theme #country-search {
+            background-color: #333;
+            border-color: #555;
+            color: #f0f0f0;
+        }
+        
+        #country-search:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+        
+        .search-icon {
+            position: absolute;
+            right: calc(50% - 240px);
+            top: 50%;
+            transform: translateY(-50%);
+            color: #aaa;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        @media (max-width: 992px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .map-section, .stats-panel, .info-panel {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+        
+        .dark-theme .map-section,
+        .dark-theme .stats-panel,
+        .dark-theme .info-panel {
+            background-color: #2d2d2d;
+            color: #f0f0f0;
+        }
+        
+        .map-section {
+            overflow: hidden;
+        }
+        
+        .stats-panel {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .map-container {
+            position: relative;
+            width: 100%;
+            height: 600px;
+            background-color: #e6f3ff;
+            overflow: hidden;
+            transition: var(--transition);
+        }
+        
+        .dark-theme .map-container {
+            background-color: #1a2a3a;
+        }
+        
+        svg {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .country {
+            fill: #b8daff;
+            stroke: #fff;
+            stroke-width: 0.5px;
+            transition: var(--transition);
+        }
+        
+        .dark-theme .country {
+            fill: #2a4365;
+            stroke: #4a5568;
+        }
+        
+        .country:hover {
+            fill: #7ab8ff;
+            cursor: pointer;
+            stroke-width: 1px;
+            stroke: var(--dark-color);
+        }
+        
+        .dark-theme .country:hover {
+            fill: #3b82f6;
+        }
+        
+        .country.highlighted {
+            fill: var(--primary-color);
+            stroke: var(--dark-color);
+            stroke-width: 1px;
+        }
+        
+        .country.highlighted-search {
+            fill: var(--secondary-color);
+            stroke: var(--dark-color);
+            stroke-width: 1px;
+        }
+        
+        .country.selected {
+            fill: var(--danger-color);
+            stroke: var(--dark-color);
+            stroke-width: 1.5px;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { stroke-width: 1.5px; }
+            50% { stroke-width: 3px; }
+            100% { stroke-width: 1.5px; }
+        }
+        
+        .tooltip {
+            position: absolute;
+            padding: 10px 15px;
+            background: rgba(0, 0, 0, 0.85);
+            color: white;
+            border-radius: 6px;
+            pointer-events: none;
+            font-size: 14px;
+            z-index: 100;
+            display: none;
+            max-width: 250px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+            transform: translate(-50%, -100%);
+            transition: var(--transition);
+        }
+        
+        .tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: rgba(0, 0, 0, 0.85) transparent transparent transparent;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px;
+            background-color: var(--dark-color);
+            border-bottom: 1px solid #ddd;
+            transition: var(--transition);
+        }
+        
+        .dark-theme .controls {
+            background-color: #1e293b;
+            border-bottom-color: #444;
+        }
+        
+        .control-group {
+            display: flex;
+            gap: 10px;
+        }
+        
+        button {
+            padding: 8px 16px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        button:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button.secondary {
+            background-color: var(--secondary-color);
+        }
+        
+        button.secondary:hover {
+            background-color: #27ae60;
+        }
+        
+        button.danger {
+            background-color: var(--danger-color);
+        }
+        
+        button.danger:hover {
+            background-color: #c0392b;
+        }
+        
+        button.warning {
+            background-color: var(--warning-color);
+        }
+        
+        button.warning:hover {
+            background-color: #d35400;
+        }
+        
+        .info-panel {
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .info-panel h3 {
+            margin-top: 0;
+            color: var(--dark-color);
+            border-bottom: 2px solid var(--light-color);
+            padding-bottom: 10px;
+            font-family: 'Montserrat', sans-serif;
+            transition: var(--transition);
+        }
+        
+        .dark-theme .info-panel h3 {
+            border-bottom-color: #444;
+        }
+        
+        .country-details {
+            margin-top: 15px;
+        }
+        
+        .detail-row {
+            display: flex;
+            margin-bottom: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .detail-label {
+            font-weight: 600;
+            min-width: 150px;
+            color: var(--dark-color);
+            margin-right: 10px;
+            transition: var(--transition);
+        }
+        
+        .detail-value {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .flag {
+            width: 100%;
+            max-width: 200px;
+            height: auto;
+            border: 1px solid #ddd;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: var(--transition);
+        }
+        
+        .dark-theme .flag {
+            border-color: #555;
+        }
+        
+        .stats-card {
+            background: linear-gradient(135deg, #f5f7fa, #e4e8eb);
+            border-radius: var(--border-radius);
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+        
+        .dark-theme .stats-card {
+            background: linear-gradient(135deg, #333, #444);
+        }
+        
+        .stats-card h4 {
+            margin-top: 0;
+            color: var(--dark-color);
+            font-family: 'Montserrat', sans-serif;
+            transition: var(--transition);
+        }
+        
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin: 5px 0;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            transition: var(--transition);
+        }
+        
+        .dark-theme .stat-label {
+            color: #aaa;
+        }
+        
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            font-size: 1.2rem;
+            color: var(--dark-color);
+            transition: var(--transition);
+        }
+        
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid var(--primary-color);
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .country-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 15px;
+            border-top: 1px solid #eee;
+            padding-top: 10px;
+            transition: var(--transition);
+        }
+        
+        .dark-theme .country-list {
+            border-top-color: #444;
+        }
+        
+        .country-item {
+            padding: 8px 12px;
+            margin: 5px 0;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+        }
+        
+        .country-item:hover {
+            background-color: var(--light-color);
+        }
+        
+        .dark-theme .country-item:hover {
+            background-color: #444;
+        }
+        
+        .country-item .flag-icon {
+            width: 20px;
+            height: 15px;
+            margin-right: 10px;
+            border: 1px solid #ddd;
+        }
+        
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .data-card {
+            background-color: rgba(52, 152, 219, 0.1);
+            border-radius: var(--border-radius);
+            padding: 12px;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+        
+        .dark-theme .data-card {
+            background-color: rgba(52, 152, 219, 0.2);
+        }
+        
+        .data-card h5 {
+            margin: 0 0 5px 0;
+            font-size: 0.9rem;
+            color: var(--primary-dark);
+        }
+        
+        .data-card p {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 15px;
+            transition: var(--transition);
+        }
+        
+        .dark-theme .tabs {
+            border-bottom-color: #444;
+        }
+        
+        .tab {
+            padding: 8px 16px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: var(--transition);
+            font-weight: 600;
+        }
+        
+        .tab.active {
+            border-bottom-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+        
+        .dark-theme .tab.active {
+            color: #7ab8ff;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .progress-container {
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            margin: 5px 0;
+            overflow: hidden;
+            height: 10px;
+            transition: var(--transition);
+        }
+        
+        .dark-theme .progress-container {
+            background-color: #444;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background-color: var(--primary-color);
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+        
+        .comparison-container {
+            margin-top: 20px;
+        }
+        
+        .comparison-row {
+            display: flex;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+        
+        .comparison-label {
+            width: 120px;
+            font-weight: 600;
+        }
+        
+        .comparison-bar {
+            flex: 1;
+            height: 20px;
+            background-color: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 0 10px;
+            position: relative;
+        }
+        
+        .dark-theme .comparison-bar {
+            background-color: #444;
+        }
+        
+        .comparison-fill {
+            height: 100%;
+            background-color: var(--primary-color);
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+        
+        .comparison-fill.secondary {
+            background-color: var(--secondary-color);
+            left: auto;
+            right: 0;
+        }
+        
+        .comparison-value {
+            width: 60px;
+            text-align: right;
+            font-weight: 600;
+        }
+        
+        .weather-icon {
+            font-size: 2rem;
+            margin-right: 10px;
+            color: var(--primary-color);
+        }
+        
+        .weather-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .currency-flag {
+            width: 20px;
+            height: 15px;
+            margin-right: 8px;
+            border: 1px solid #ddd;
+        }
+        
+        .news-item {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .dark-theme .news-item {
+            border-bottom-color: #444;
+        }
+        
+        .news-item:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+        
+        .news-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .news-source {
+            font-size: 0.8rem;
+            color: #7f8c8d;
+        }
+        
+        .dark-theme .news-source {
+            color: #aaa;
+        }
+        
+        .news-date {
+            font-size: 0.8rem;
+            color: var(--primary-dark);
+        }
+        
+        .description {
+            margin-top: 10px;
+            color: #555;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        
+        .dark-theme .description {
+            color: #ccc;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .map-container {
+                height: 400px;
+            }
+            
+            .controls {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .control-group {
+                justify-content: center;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .data-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .detail-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .detail-label {
+                margin-bottom: 5px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .data-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+ .btn-moderno {
+            /* Estilo base */
+            display: inline-block;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px; /* Esquinas ligeramente redondeadas */
+            
+            /* Colores llamativos */
+            background: linear-gradient(135deg, #3a7bd5, #00d2ff);
+            color: white;
+            
+            /* Tipografía */
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            font-size: 16px;
+            font-weight: 600;
+            text-decoration: none;
+            text-align: center;
+            
+            /* Efectos */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-moderno:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+            background: linear-gradient(135deg, #2a6bc8, #00c2ff);
+        }
+
+        .btn-moderno:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-moderno::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                      rgba(255,255,255,0.1) 0%, 
+                      rgba(255,255,255,0.3) 50%, 
+                      rgba(255,255,255,0.1) 100%);
+            transform: translateX(-100%);
+            transition: transform 0.6s ease;
+        }
+
+        .btn-moderno:hover::after {
+            transform: translateX(100%);
+        }
+
+    </style>
+</head>
+<button 
+  class="btn-moderno"
+  onclick="window.location.href='buttonherramienta.html'">
+  Volver atrás
+</button>
+<body>
+    <div class="container">
+        <header>
+            <h1>Explorador Mundial Interactivo</h1>
+            <div class="subtitle">Descubre información detallada sobre cada país del mundo</div>
+        </header>
+        
+        <div class="search-container">
+            <input type="text" id="country-search" placeholder="Buscar país por nombre...">
+            <span class="search-icon">🔍</span>
+        </div>
+        
+        <div class="dashboard">
+            <div class="map-section">
+                <div class="controls">
+                    <div class="control-group">
+                        <button id="reset-btn" title="Restablecer vista">
+                            <i class="fas fa-sync-alt"></i> Reiniciar
+                        </button>
+                        <button id="theme-btn" title="Cambiar tema" class="secondary">
+                            <i class="fas fa-moon"></i> Tema
+                        </button>
+                        <button id="compare-btn" title="Comparar países" class="warning">
+                            <i class="fas fa-balance-scale"></i> Comparar
+                        </button>
+                    </div>
+                    <div class="control-group">
+                        <button id="zoom-out-btn" title="Alejar">
+                            <i class="fas fa-search-minus"></i> Zoom -
+                        </button>
+                        <button id="zoom-in-btn" title="Acercar">
+                            <i class="fas fa-search-plus"></i> Zoom +
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="map-container">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <span>Cargando mapa mundial...</span>
+                    </div>
+                    <div class="tooltip" id="tooltip"></div>
+                    <svg id="world-map" viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid meet"></svg>
+                </div>
+            </div>
+            
+            <div class="stats-panel">
+                <div class="stats-card">
+                    <h4>Estadísticas Globales</h4>
+                    <div class="stat-value" id="total-countries">0</div>
+                    <div class="stat-label">Países en el mapa</div>
+                    <div class="progress-container">
+                        <div class="progress-bar" id="visited-progress"></div>
+                    </div>
+                    <div class="stat-label" id="progress-text">0% del mundo visitado</div>
+                </div>
+                
+                <div class="stats-card">
+                    <h4>Último país visto</h4>
+                    <div id="last-country">Ninguno</div>
+                    <div id="last-country-flag" style="margin-top: 10px;"></div>
+                </div>
+                
+                <div class="stats-card">
+                    <h4>Países visitados</h4>
+                    <div class="stat-value" id="visited-countries">0</div>
+                    <div class="stat-label">Haz clic en países para añadirlos</div>
+                    <div class="country-list" id="visited-list"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="info-panel" id="info-panel">
+            <div class="tabs">
+                <div class="tab active" data-tab="general">General</div>
+                <div class="tab" data-tab="economy">Economía</div>
+                <div class="tab" data-tab="demographics">Demografía</div>
+                <div class="tab" data-tab="weather">Clima</div>
+                <div class="tab" data-tab="news">Noticias</div>
+            </div>
+            
+            <div id="country-info">
+                <div class="tab-content active" id="general-tab">
+                    <p>Selecciona un país en el mapa para ver información detallada.</p>
+                    <p>También puedes usar la barra de búsqueda arriba para encontrar países específicos.</p>
+                </div>
+                
+                <div class="tab-content" id="economy-tab"></div>
+                <div class="tab-content" id="demographics-tab"></div>
+                <div class="tab-content" id="weather-tab"></div>
+                <div class="tab-content" id="news-tab"></div>
+            </div>
+            
+            <div id="comparison-panel" style="display: none;">
+                <h3>Comparación de Países</h3>
+                <div id="comparison-container" class="comparison-container"></div>
+                <button id="clear-comparison" class="danger" style="margin-top: 15px;">
+                    <i class="fas fa-trash"></i> Limpiar comparación
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elementos del DOM
+            const svg = document.getElementById('world-map');
+            const tooltip = document.getElementById('tooltip');
+            const countryInfo = document.getElementById('country-info');
+            const countrySearch = document.getElementById('country-search');
+            const resetBtn = document.getElementById('reset-btn');
+            const zoomInBtn = document.getElementById('zoom-in-btn');
+            const zoomOutBtn = document.getElementById('zoom-out-btn');
+            const themeBtn = document.getElementById('theme-btn');
+            const compareBtn = document.getElementById('compare-btn');
+            const clearComparisonBtn = document.getElementById('clear-comparison');
+            const loadingElement = document.querySelector('.loading');
+            const totalCountriesElement = document.getElementById('total-countries');
+            const lastCountryElement = document.getElementById('last-country');
+            const lastCountryFlagElement = document.getElementById('last-country-flag');
+            const visitedCountriesElement = document.getElementById('visited-countries');
+            const visitedListElement = document.getElementById('visited-list');
+            const visitedProgressElement = document.getElementById('visited-progress');
+            const progressTextElement = document.getElementById('progress-text');
+            const comparisonPanel = document.getElementById('comparison-panel');
+            const comparisonContainer = document.getElementById('comparison-container');
+            const tabs = document.querySelectorAll('.tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            // Variables de estado
+            let countriesData = [];
+            let countryDetailsCache = {};
+            let currentTransform = { x: 0, y: 0, scale: 1 };
+            let selectedCountry = null;
+            let visitedCountries = new Set();
+            let darkMode = false;
+            let comparisonMode = false;
+            let countriesToCompare = [];
+            
+            // Cargar datos del mapa
+            fetch('https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json')
+                .then(response => response.json())
+                .then(data => {
+                    countriesData = data.features;
+                    renderMap();
+                    updateStats();
+                    loadingElement.style.display = 'none';
+                })
+                .catch(error => {
+                    console.error('Error al cargar los datos del mapa:', error);
+                    loadingElement.innerHTML = '<span style="color: red;">Error al cargar el mapa. Por favor, recarga la página.</span>';
+                });
+            
+            // Renderizar el mapa
+            function renderMap() {
+                svg.innerHTML = '';
+                
+                // Crear un grupo para aplicar transformaciones
+                const mapGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                mapGroup.setAttribute('transform', `translate(${currentTransform.x}, ${currentTransform.y}) scale(${currentTransform.scale})`);
+                
+                // Dibujar cada país
+                countriesData.forEach(country => {
+                    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    path.setAttribute('class', 'country');
+                    path.setAttribute('id', country.properties.name.replace(/\s+/g, '-'));
+                    path.setAttribute('d', createPathData(country.geometry));
+                    
+                    // Almacenar datos del país en el elemento
+                    path.countryData = country.properties;
+                    
+                    // Eventos interactivos
+                    path.addEventListener('mouseover', handleCountryMouseOver);
+                    path.addEventListener('mouseout', handleCountryMouseOut);
+                    path.addEventListener('click', handleCountryClick);
+                    
+                    mapGroup.appendChild(path);
+                });
+                
+                svg.appendChild(mapGroup);
+                
+                // Habilitar zoom con la rueda del mouse
+                svg.addEventListener('wheel', handleMouseWheel);
+                
+                // Habilitar arrastre del mapa
+                let isDragging = false;
+                let startDragX, startDragY;
+                
+                svg.addEventListener('mousedown', (e) => {
+                    isDragging = true;
+                    startDragX = e.clientX - currentTransform.x;
+                    startDragY = e.clientY - currentTransform.y;
+                    svg.style.cursor = 'grabbing';
+                });
+                
+                document.addEventListener('mousemove', (e) => {
+                    if (isDragging) {
+                        currentTransform.x = e.clientX - startDragX;
+                        currentTransform.y = e.clientY - startDragY;
+                        updateMapTransform();
+                    }
+                });
+                
+                document.addEventListener('mouseup', () => {
+                    isDragging = false;
+                    svg.style.cursor = 'grab';
+                });
+            }
+            
+            // Convertir coordenadas GeoJSON a datos de ruta SVG
+            function createPathData(geometry) {
+                if (geometry.type === 'Polygon') {
+                    return createPolygonPath(geometry.coordinates);
+                } else if (geometry.type === 'MultiPolygon') {
+                    return geometry.coordinates.map(polygon => createPolygonPath(polygon)).join(' ');
+                }
+                return '';
+            }
+            
+            function createPolygonPath(coordinates) {
+                return coordinates.map(ring => {
+                    return ring.map((point, i) => {
+                        const [x, y] = point;
+                        // Escalar y ajustar las coordenadas para que encajen en el SVG
+                        const scaledX = (x + 180) * (1000 / 360);
+                        const scaledY = (90 - y) * (500 / 180);
+                        return `${i === 0 ? 'M' : 'L'}${scaledX} ${scaledY}`;
+                    }).join(' ') + ' Z';
+                }).join(' ');
+            }
+            
+            // Manejadores de eventos
+            function handleCountryMouseOver(e) {
+                const country = e.target;
+                const countryData = country.countryData;
+                
+                // Resaltar país
+                country.classList.add('highlighted');
+                
+                // Mostrar tooltip
+                tooltip.style.display = 'block';
+                tooltip.innerHTML = `
+                    <strong>${countryData.name}</strong>
+                    <div>${countryData.continent || ''}</div>
+                `;
+                
+                // Posicionar tooltip
+                const bbox = country.getBBox();
+                const x = (bbox.x + bbox.width/2) * currentTransform.scale + currentTransform.x;
+                const y = bbox.y * currentTransform.scale + currentTransform.y;
+                
+                tooltip.style.left = `${x}px`;
+                tooltip.style.top = `${y}px`;
+            }
+            
+            function handleCountryMouseOut(e) {
+                const country = e.target;
+                
+                // Quitar resaltado si no es el país seleccionado
+                if (!selectedCountry || selectedCountry.id !== country.id) {
+                    country.classList.remove('highlighted');
+                }
+                
+                // Ocultar tooltip
+                tooltip.style.display = 'none';
+            }
+            
+            function handleCountryClick(e) {
+                const country = e.target;
+                const countryData = country.countryData;
+                
+                if (comparisonMode) {
+                    // Modo comparación: añadir o quitar país de la comparación
+                    toggleCountryComparison(country, countryData);
+                } else {
+                    // Modo normal: seleccionar país
+                    selectCountry(country, countryData);
+                }
+            }
+            
+            function selectCountry(country, countryData) {
+                // Deseleccionar el país anterior
+                if (selectedCountry) {
+                    selectedCountry.classList.remove('selected');
+                    selectedCountry.classList.remove('highlighted');
+                }
+                
+                // Seleccionar el nuevo país
+                selectedCountry = country;
+                country.classList.add('selected');
+                
+                // Añadir a países visitados
+                if (!visitedCountries.has(countryData.name)) {
+                    visitedCountries.add(countryData.name);
+                    updateVisitedList();
+                }
+                updateStats();
+                lastCountryElement.textContent = countryData.name;
+                
+                // Mostrar bandera en el panel de estadísticas
+                lastCountryFlagElement.innerHTML = `<img src="https://flagcdn.com/w80/${countryData.iso_a2.toLowerCase()}.png" alt="Bandera de ${countryData.name}" style="max-width: 100%; height: auto; border: 1px solid #ddd;">`;
+                
+                // Mostrar información del país
+                showCountryInfo(countryData);
+                
+                // Cambiar a pestaña General
+                switchTab('general');
+            }
+            
+            function toggleCountryComparison(country, countryData) {
+                const countryId = countryData.name;
+                const index = countriesToCompare.findIndex(c => c.name === countryId);
+                
+                if (index === -1) {
+                    // Añadir a comparación
+                    if (countriesToCompare.length < 4) {
+                        countriesToCompare.push({
+                            name: countryId,
+                            element: country,
+                            data: countryData
+                        });
+                        country.classList.add('selected');
+                    } else {
+                        showTooltip('Máximo 4 países para comparar', 2000);
+                        return;
+                    }
+                } else {
+                    // Quitar de comparación
+                    countriesToCompare.splice(index, 1);
+                    country.classList.remove('selected');
+                    
+                    // Si era el país seleccionado, quitarlo también
+                    if (selectedCountry && selectedCountry.id === country.id) {
+                        selectedCountry = null;
+                    }
+                }
+                
+                // Actualizar interfaz de comparación
+                updateComparisonUI();
+                
+                // Actualizar texto del botón
+                compareBtn.textContent = `Comparar (${countriesToCompare.length})`;
+            }
+            
+            function updateComparisonUI() {
+                if (countriesToCompare.length > 0) {
+                    comparisonPanel.style.display = 'block';
+                    
+                    // Obtener datos detallados para todos los países en comparación
+                    const comparisonPromises = countriesToCompare.map(country => {
+                        return getCountryDetails(country.data.iso_a2 || country.data.name)
+                            .then(details => {
+                                return {
+                                    ...country,
+                                    details: details
+                                };
+                            });
+                    });
+                    
+                    Promise.all(comparisonPromises).then(countriesWithDetails => {
+                        renderComparison(countriesWithDetails);
+                    });
+                } else {
+                    comparisonPanel.style.display = 'none';
+                    compareBtn.textContent = 'Comparar';
+                    
+                    // Si hay un país seleccionado, mostrar su información
+                    if (selectedCountry) {
+                        showCountryInfo(selectedCountry.countryData);
+                    }
+                }
+            }
+            
+            function renderComparison(countries) {
+                comparisonContainer.innerHTML = '';
+                
+                if (countries.length < 2) {
+                    comparisonContainer.innerHTML = '<p>Selecciona al menos 2 países para comparar</p>';
+                    return;
+                }
+                
+                // Mostrar nombres de países comparados
+                const countriesHeader = document.createElement('div');
+                countriesHeader.style.display = 'flex';
+                countriesHeader.style.marginBottom = '20px';
+                countriesHeader.style.fontWeight = 'bold';
+                
+                countries.forEach(country => {
+                    const countryHeader = document.createElement('div');
+                    countryHeader.style.flex = '1';
+                    countryHeader.style.textAlign = 'center';
+                    countryHeader.innerHTML = `
+                        <img src="https://flagcdn.com/w40/${country.data.iso_a2.toLowerCase()}.png" alt="${country.data.name}" style="margin-bottom: 5px;">
+                        <div>${country.data.name}</div>
+                    `;
+                    countriesHeader.appendChild(countryHeader);
+                });
+                
+                comparisonContainer.appendChild(countriesHeader);
+                
+                // Comparar población
+                if (countries.every(c => c.details.population)) {
+                    const maxPopulation = Math.max(...countries.map(c => c.details.population));
+                    
+                    countries.forEach(country => {
+                        const row = document.createElement('div');
+                        row.className = 'comparison-row';
+                        
+                        const label = document.createElement('div');
+                        label.className = 'comparison-label';
+                        label.textContent = 'Población:';
+                        
+                        const bar = document.createElement('div');
+                        bar.className = 'comparison-bar';
+                        
+                        const fill = document.createElement('div');
+                        fill.className = 'comparison-fill';
+                        fill.style.width = `${(country.details.population / maxPopulation) * 100}%`;
+                        
+                        const value = document.createElement('div');
+                        value.className = 'comparison-value';
+                        value.textContent = formatNumber(country.details.population);
+                        
+                        bar.appendChild(fill);
+                        row.appendChild(label);
+                        row.appendChild(bar);
+                        row.appendChild(value);
+                        
+                        comparisonContainer.appendChild(row);
+                    });
+                }
+                
+                // Comparar área
+                if (countries.every(c => c.details.area)) {
+                    const maxArea = Math.max(...countries.map(c => c.details.area));
+                    
+                    countries.forEach(country => {
+                        const row = document.createElement('div');
+                        row.className = 'comparison-row';
+                        
+                        const label = document.createElement('div');
+                        label.className = 'comparison-label';
+                        label.textContent = 'Área (km²):';
+                        
+                        const bar = document.createElement('div');
+                        bar.className = 'comparison-bar';
+                        
+                        const fill = document.createElement('div');
+                        fill.className = 'comparison-fill';
+                        fill.style.width = `${(country.details.area / maxArea) * 100}%`;
+                        
+                        const value = document.createElement('div');
+                        value.className = 'comparison-value';
+                        value.textContent = formatNumber(country.details.area);
+                        
+                        bar.appendChild(fill);
+                        row.appendChild(label);
+                        row.appendChild(bar);
+                        row.appendChild(value);
+                        
+                        comparisonContainer.appendChild(row);
+                    });
+                }
+                
+                // Comparar PIB per cápita
+                if (countries.every(c => c.details.gdpPerCapita)) {
+                    const maxGdp = Math.max(...countries.map(c => c.details.gdpPerCapita));
+                    
+                    countries.forEach(country => {
+                        const row = document.createElement('div');
+                        row.className = 'comparison-row';
+                        
+                        const label = document.createElement('div');
+                        label.className = 'comparison-label';
+                        label.textContent = 'PIB per cápita:';
+                        
+                        const bar = document.createElement('div');
+                        bar.className = 'comparison-bar';
+                        
+                        const fill = document.createElement('div');
+                        fill.className = 'comparison-fill';
+                        fill.style.width = `${(country.details.gdpPerCapita / maxGdp) * 100}%`;
+                        
+                        const value = document.createElement('div');
+                        value.className = 'comparison-value';
+                        value.textContent = `$${formatNumber(country.details.gdpPerCapita)}`;
+                        
+                        bar.appendChild(fill);
+                        row.appendChild(label);
+                        row.appendChild(bar);
+                        row.appendChild(value);
+                        
+                        comparisonContainer.appendChild(row);
+                    });
+                }
+                
+                // Comparar esperanza de vida
+                if (countries.every(c => c.details.lifeExpectancy)) {
+                    const maxLife = Math.max(...countries.map(c => c.details.lifeExpectancy));
+                    
+                    countries.forEach(country => {
+                        const row = document.createElement('div');
+                        row.className = 'comparison-row';
+                        
+                        const label = document.createElement('div');
+                        label.className = 'comparison-label';
+                        label.textContent = 'Esperanza de vida:';
+                        
+                        const bar = document.createElement('div');
+                        bar.className = 'comparison-bar';
+                        
+                        const fill = document.createElement('div');
+                        fill.className = 'comparison-fill';
+                        fill.style.width = `${(country.details.lifeExpectancy / maxLife) * 100}%`;
+                        
+                        const value = document.createElement('div');
+                        value.className = 'comparison-value';
+                        value.textContent = `${country.details.lifeExpectancy} años`;
+                        
+                        bar.appendChild(fill);
+                        row.appendChild(label);
+                        row.appendChild(bar);
+                        row.appendChild(value);
+                        
+                        comparisonContainer.appendChild(row);
+                    });
+                }
+            }
+            
+            function showCountryInfo(countryData) {
+                // Obtener datos detallados del país
+                getCountryDetails(countryData.iso_a2 || countryData.name)
+                    .then(details => {
+                        // Mostrar información general
+                        showGeneralInfo(countryData, details);
+                        
+                        // Mostrar información económica
+                        showEconomyInfo(details);
+                        
+                        // Mostrar información demográfica
+                        showDemographicsInfo(details);
+                        
+                        // Obtener y mostrar información del clima
+                        showWeatherInfo(countryData, details);
+                        
+                        // Obtener y mostrar noticias
+                        showNewsInfo(countryData);
+                    })
+                    .catch(error => {
+                        console.error('Error al obtener detalles del país:', error);
+                        countryInfo.innerHTML = `
+                            <div class="country-details">
+                                <p>Error al cargar información detallada del país. Por favor, intenta nuevamente.</p>
+                            </div>
+                        `;
+                    });
+            }
+            
+            function getCountryDetails(countryCode) {
+                // Verificar si ya tenemos los datos en caché
+                if (countryDetailsCache[countryCode]) {
+                    return Promise.resolve(countryDetailsCache[countryCode]);
+                }
+                
+                // Usar la API de RestCountries para obtener información detallada
+                return fetch(`https://restcountries.com/v3.1/alpha/${countryCode}`)
+                    .then(response => {
+                        if (!response.ok) throw new Error('País no encontrado');
+                        return response.json();
+                    })
+                    .then(data => {
+                        const country = data[0];
+                        
+                        // Extraer datos relevantes
+                        const details = {
+                            capital: country.capital ? country.capital[0] : 'N/A',
+                            population: country.population,
+                            area: country.area,
+                            languages: country.languages ? Object.values(country.languages).join(', ') : 'N/A',
+                            currencies: country.currencies ? Object.values(country.currencies).map(c => `${c.name} (${c.symbol || 'N/A'})`).join(', ') : 'N/A',
+                            region: country.region,
+                            subregion: country.subregion,
+                            timezones: country.timezones ? country.timezones.join(', ') : 'N/A',
+                            borders: country.borders ? country.borders.length : 0,
+                            flag: country.flags.png,
+                            coatOfArms: country.coatOfArms?.png || null,
+                            gdpPerCapita: country.gini ? Math.floor(country.population * 0.00001 * (100 - country.gini)) : null,
+                            lifeExpectancy: country.lifeExpectancy || null,
+                            drivingSide: country.car?.side || 'N/A',
+                            unMember: country.unMember || false,
+                            independent: country.independent || false
+                        };
+                        
+                        // Guardar en caché
+                        countryDetailsCache[countryCode] = details;
+                        
+                        return details;
+                    });
+            }
+            
+            function showGeneralInfo(countryData, details) {
+                const generalTab = document.getElementById('general-tab');
+                
+                generalTab.innerHTML = `
+                    <div class="country-details">
+                        <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                            <div>
+                                <img src="${details.flag}" alt="Bandera de ${countryData.name}" class="flag" onerror="this.style.display='none'">
+                                ${details.coatOfArms ? `<img src="${details.coatOfArms}" alt="Escudo de armas de ${countryData.name}" class="flag" style="margin-top: 10px;" onerror="this.style.display='none'">` : ''}
+                            </div>
+                            
+                            <div style="flex: 1; min-width: 250px;">
+                                <div class="detail-row">
+                                    <div class="detail-label">Nombre oficial:</div>
+                                    <div class="detail-value">${countryData.name}</div>
+                                </div>
+                                
+                                <div class="detail-row">
+                                    <div class="detail-label">Capital:</div>
+                                    <div class="detail-value">${details.capital}</div>
+                                </div>
+                                
+                                <div class="detail-row">
+                                    <div class="detail-label">Código:</div>
+                                    <div class="detail-value">${countryData.iso_a2 || 'N/A'}</div>
+                                </div>
+                                
+                                <div class="detail-row">
+                                    <div class="detail-label">Continente:</div>
+                                    <div class="detail-value">${countryData.continent || details.region || 'N/A'}</div>
+                                </div>
+                                
+                                <div class="detail-row">
+                                    <div class="detail-label">Subregión:</div>
+                                    <div class="detail-value">${countryData.subregion || details.subregion || 'N/A'}</div>
+                                </div>
+                                
+                                <div class="detail-row">
+                                    <div class="detail-label">Idiomas:</div>
+                                    <div class="detail-value">${details.languages}</div>
+                                </div>
+                                
+                                <div class="detail-row">
+                                    <div class="detail-label">Zonas horarias:</div>
+                                    <div class="detail-value">${details.timezones}</div>
+                                </div>
+                                
+                                <div class="detail-row">
+                                    <div class="detail-label">Lado de conducción:</div>
+                                    <div class="detail-value">${details.drivingSide}</div>
+                                </div>
+                                
+                                <div class="detail-row">
+                                    <div class="detail-label">Miembro de la ONU:</div>
+                                    <div class="detail-value">${details.unMember ? 'Sí' : 'No'}</div>
+                                </div>
+                                
+                                <div class="detail-row">
+                                    <div class="detail-label">País independiente:</div>
+                                    <div class="detail-value">${details.independent ? 'Sí' : 'No'}</div>
+                                </div>
+                                
+                                <div class="detail-row">
+                                    <div class="detail-label">Más información:</div>
+                                    <div class="detail-value">
+                                        <a href="https://es.wikipedia.org/wiki/${encodeURIComponent(countryData.name)}" target="_blank"><i class="fas fa-external-link-alt"></i> Wikipedia</a> | 
+                                        <a href="https://www.google.com/search?q=${encodeURIComponent(countryData.name)}" target="_blank"><i class="fas fa-search"></i> Buscar en Google</a> | 
+                                        <a href="https://www.google.com/maps/place/${encodeURIComponent(countryData.name)}" target="_blank"><i class="fas fa-map-marked-alt"></i> Ver en Maps</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="description">
+                            <h4>Descripción General</h4>
+                            <p>Esta sección proporciona información básica sobre ${countryData.name}, incluyendo su ubicación geográfica, capital y datos administrativos. La bandera nacional y el escudo de armas (si está disponible) representan los símbolos patrios del país.</p>
+                            <p>Los idiomas oficiales reflejan la diversidad cultural, mientras que las zonas horarias indican la extensión territorial del país. El estatus en la ONU y la independencia son indicadores políticos importantes.</p>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            function showEconomyInfo(details) {
+                const economyTab = document.getElementById('economy-tab');
+                
+                economyTab.innerHTML = `
+                    <div class="country-details">
+                        <div class="data-grid">
+                            <div class="data-card">
+                                <h5>Moneda</h5>
+                                <p>${details.currencies || 'N/A'}</p>
+                            </div>
+                            
+                            <div class="data-card">
+                                <h5>PIB per cápita (estimado)</h5>
+                                <p>${details.gdpPerCapita ? `$${formatNumber(details.gdpPerCapita)}` : 'N/A'}</p>
+                            </div>
+                            
+                            <div class="data-card">
+                                <h5>Área total</h5>
+                                <p>${details.area ? `${formatNumber(details.area)} km²` : 'N/A'}</p>
+                            </div>
+                            
+                            <div class="data-card">
+                                <h5>Países fronterizos</h5>
+                                <p>${details.borders || '0'}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="description">
+                            <h4>Descripción Económica</h4>
+                            <p>Esta sección presenta los principales indicadores económicos del país. La moneda nacional es fundamental para las transacciones económicas internas y el comercio internacional.</p>
+                            <p>El PIB per cápita es una medida aproximada del nivel de vida, calculado aquí basado en población y coeficiente de Gini. El área total indica la extensión territorial que influye en los recursos naturales disponibles.</p>
+                            <p>El número de países fronterizos afecta las relaciones comerciales y políticas, así como los acuerdos de libre comercio.</p>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            function showDemographicsInfo(details) {
+                const demographicsTab = document.getElementById('demographics-tab');
+                
+                demographicsTab.innerHTML = `
+                    <div class="country-details">
+                        <div class="data-grid">
+                            <div class="data-card">
+                                <h5>Población total</h5>
+                                <p>${formatNumber(details.population)}</p>
+                            </div>
+                            
+                            <div class="data-card">
+                                <h5>Densidad poblacional</h5>
+                                <p>${details.area ? `${formatNumber(Math.round(details.population / details.area))} hab/km²` : 'N/A'}</p>
+                            </div>
+                            
+                            <div class="data-card">
+                                <h5>Esperanza de vida</h5>
+                                <p>${details.lifeExpectancy ? `${details.lifeExpectancy} años` : 'N/A'}</p>
+                            </div>
+                            
+                            <div class="data-card">
+                                <h5>Idiomas principales</h5>
+                                <p>${details.languages || 'N/A'}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="description">
+                            <h4>Descripción Demográfica</h4>
+                            <p>Esta sección analiza las características de la población del país. La población total es un indicador clave del tamaño del mercado laboral y consumo interno.</p>
+                            <p>La densidad poblacional muestra cómo se distribuyen los habitantes en el territorio, lo que afecta la planificación urbana y el uso de recursos. La esperanza de vida refleja las condiciones de salud y calidad de vida.</p>
+                            <p>Los idiomas principales son esenciales para entender la diversidad cultural y las dinámicas sociales dentro del país.</p>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            function showWeatherInfo(countryData, details) {
+                const weatherTab = document.getElementById('weather-tab');
+                
+                weatherTab.innerHTML = `
+                    <div class="country-details">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            <span>Cargando datos climáticos...</span>
+                        </div>
+                    </div>
+                `;
+                
+                // Usar la capital para obtener el clima
+                if (details.capital && details.capital !== 'N/A') {
+                    fetch(`https://api.openweathermap.org/data/2.5/weather?q=${details.capital},${countryData.iso_a2}&units=metric&lang=es&appid=YOUR_API_KEY`)
+                        .then(response => response.json())
+                        .then(weatherData => {
+                            weatherTab.innerHTML = `
+                                <div class="country-details">
+                                    <h4>Clima en ${details.capital}</h4>
+                                    
+                                    <div class="weather-info">
+                                        <div class="weather-icon">
+                                            <img src="https://openweathermap.org/img/wn/${weatherData.weather[0].icon}@2x.png" alt="${weatherData.weather[0].description}">
+                                        </div>
+                                        <div>
+                                            <div style="font-size: 1.5rem; font-weight: bold;">${Math.round(weatherData.main.temp)}°C</div>
+                                            <div>${capitalizeFirstLetter(weatherData.weather[0].description)}</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="data-grid">
+                                        <div class="data-card">
+                                            <h5>Sensación térmica</h5>
+                                            <p>${Math.round(weatherData.main.feels_like)}°C</p>
+                                        </div>
+                                        
+                                        <div class="data-card">
+                                            <h5>Humedad</h5>
+                                            <p>${weatherData.main.humidity}%</p>
+                                        </div>
+                                        
+                                        <div class="data-card">
+                                            <h5>Viento</h5>
+                                            <p>${weatherData.wind.speed} m/s</p>
+                                        </div>
+                                        
+                                        <div class="data-card">
+                                            <h5>Presión</h5>
+                                            <p>${weatherData.main.pressure} hPa</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="description">
+                                        <h4>Descripción Climática</h4>
+                                        <p>Esta sección muestra las condiciones meteorológicas actuales en la capital del país. La temperatura y sensación térmica son indicadores clave del confort climático.</p>
+                                        <p>La humedad relativa afecta la percepción del calor y la salud respiratoria. La velocidad del viento influye en la dispersión de contaminantes y la sensación de frío.</p>
+                                        <p>La presión atmosférica está relacionada con los sistemas de alta y baja presión que determinan los patrones climáticos a corto plazo.</p>
+                                    </div>
+                                </div>
+                            `;
+                        })
+                        .catch(error => {
+                            console.error('Error al obtener datos climáticos:', error);
+                            weatherTab.innerHTML = `
+                                <div class="country-details">
+                                    <p>No se pudieron cargar los datos climáticos. La API de OpenWeatherMap requiere una clave válida.</p>
+                                    <p>Ejemplo de cómo se verían los datos climáticos para ${details.capital}:</p>
+                                    
+                                    <div class="weather-info">
+                                        <div class="weather-icon">
+                                            <i class="fas fa-sun"></i>
+                                        </div>
+                                        <div>
+                                            <div style="font-size: 1.5rem; font-weight: bold;">24°C</div>
+                                            <div>Parcialmente nublado</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="description">
+                                        <h4>Descripción Climática</h4>
+                                        <p>El clima típico de este país varía según su ubicación geográfica. Los países cercanos al ecuador suelen tener climas tropicales, mientras que aquellos en latitudes medias experimentan las cuatro estaciones.</p>
+                                        <p>La capital, ${details.capital}, generalmente tiene un clima [describir clima típico]. Las temperaturas promedio oscilan entre [X]°C y [Y]°C a lo largo del año.</p>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                } else {
+                    weatherTab.innerHTML = `
+                        <div class="country-details">
+                            <p>No se pudo determinar la capital para obtener datos climáticos.</p>
+                            
+                            <div class="description">
+                                <h4>Descripción Climática</h4>
+                                <p>El clima de este país está influenciado por su ubicación geográfica y topografía. Para obtener información climática precisa, se recomienda consultar fuentes especializadas o servicios meteorológicos locales.</p>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+            
+            function showNewsInfo(countryData) {
+                const newsTab = document.getElementById('news-tab');
+                
+                newsTab.innerHTML = `
+                    <div class="country-details">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            <span>Buscando noticias recientes...</span>
+                        </div>
+                    </div>
+                `;
+                
+                // Simular obtención de noticias (en un caso real, usarías una API como NewsAPI)
+                setTimeout(() => {
+                    newsTab.innerHTML = `
+                        <div class="country-details">
+                            <h4>Noticias sobre ${countryData.name}</h4>
+                            <p>Para mostrar noticias reales, necesitarías integrar una API de noticias como NewsAPI.</p>
+                            <p>Ejemplo de cómo se verían las noticias:</p>
+                            
+                            <div class="news-item">
+                                <div class="news-title">Evento importante ocurre en ${countryData.name}</div>
+                                <div class="news-source">Fuente: Periódico Ejemplo</div>
+                                <div class="news-date">Hace 2 horas</div>
+                                <div class="description">Breve descripción del evento y su impacto en la región.</div>
+                            </div>
+                            
+                            <div class="news-item">
+                                <div class="news-title">${countryData.name} anuncia nuevas medidas económicas</div>
+                                <div class="news-source">Fuente: Agencia de Noticias</div>
+                                <div class="news-date">Ayer</div>
+                                <div class="description">Resumen de las medidas implementadas y sus posibles consecuencias para la economía local.</div>
+                            </div>
+                            
+                            <div class="news-item">
+                                <div class="news-title">Cultura y tradiciones de ${countryData.name}</div>
+                                <div class="news-source">Fuente: Revista Cultural</div>
+                                <div class="news-date">3 días atrás</div>
+                                <div class="description">Exploración de las costumbres únicas y patrimonio cultural del país.</div>
+                            </div>
+                            
+                            <div class="description" style="margin-top: 20px;">
+                                <h4>Descripción de Noticias</h4>
+                                <p>Esta sección proporcionaría las últimas noticias relevantes sobre ${countryData.name}, cubriendo temas políticos, económicos, sociales y culturales.</p>
+                                <p>Las noticias ayudan a entender el contexto actual del país, incluyendo eventos importantes, tendencias y desafíos que enfrenta la nación.</p>
+                                <p>En una implementación real, esta sección se conectaría a una API de noticias para mostrar contenido actualizado en tiempo real.</p>
+                            </div>
+                        </div>
+                    `;
+                }, 1500);
+            }
+            
+            function handleMouseWheel(e) {
+                e.preventDefault();
+                
+                // Calcular posición del ratón relativa al SVG
+                const rect = svg.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+                
+                // Calcular factor de zoom
+                const delta = -e.deltaY;
+                const zoomFactor = delta > 0 ? 1.1 : 0.9;
+                
+                // Limitar zoom
+                const newScale = currentTransform.scale * zoomFactor;
+                if (newScale < 0.5 || newScale > 5) return;
+                
+                // Ajustar posición para zoom centrado en el ratón
+                currentTransform.x = mouseX - (mouseX - currentTransform.x) * zoomFactor;
+                currentTransform.y = mouseY - (mouseY - currentTransform.y) * zoomFactor;
+                currentTransform.scale = newScale;
+                
+                updateMapTransform();
+            }
+            
+            function updateMapTransform() {
+                const mapGroup = svg.querySelector('g');
+                if (mapGroup) {
+                    mapGroup.setAttribute('transform', `translate(${currentTransform.x}, ${currentTransform.y}) scale(${currentTransform.scale})`);
+                }
+            }
+            
+            function updateStats() {
+                totalCountriesElement.textContent = countriesData.length;
+                visitedCountriesElement.textContent = visitedCountries.size;
+                
+                // Calcular porcentaje de países visitados
+                const percentage = Math.round((visitedCountries.size / countriesData.length) * 100);
+                visitedProgressElement.style.width = `${percentage}%`;
+                progressTextElement.textContent = `${percentage}% del mundo visitado`;
+            }
+            
+            function updateVisitedList() {
+                visitedListElement.innerHTML = '';
+                
+                visitedCountries.forEach(countryName => {
+                    const country = countriesData.find(c => c.properties.name === countryName);
+                    if (country) {
+                        const item = document.createElement('div');
+                        item.className = 'country-item';
+                        item.innerHTML = `
+                            <img src="https://flagcdn.com/w20/${country.properties.iso_a2.toLowerCase()}.png" class="flag-icon" alt="${countryName}">
+                            ${countryName}
+                        `;
+                        
+                        item.addEventListener('click', () => {
+                            const path = document.getElementById(country.properties.name.replace(/\s+/g, '-'));
+                            if (path) {
+                                path.dispatchEvent(new Event('click'));
+                                
+                                // Centrar en el país
+                                const bbox = path.getBBox();
+                                currentTransform.x = -bbox.x * currentTransform.scale + (svg.clientWidth / 2 - bbox.width * currentTransform.scale / 2);
+                                currentTransform.y = -bbox.y * currentTransform.scale + (svg.clientHeight / 2 - bbox.height * currentTransform.scale / 2);
+                                updateMapTransform();
+                            }
+                        });
+                        
+                        visitedListElement.appendChild(item);
+                    }
+                });
+            }
+            
+            // Funciones de utilidad
+            function formatNumber(num) {
+                return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+            }
+            
+            function capitalizeFirstLetter(string) {
+                return string.charAt(0).toUpperCase() + string.slice(1);
+            }
+            
+            function showTooltip(message, duration = 2000) {
+                tooltip.style.display = 'block';
+                tooltip.innerHTML = message;
+                tooltip.style.left = '50%';
+                tooltip.style.top = '20px';
+                tooltip.style.transform = 'translateX(-50%)';
+                
+                setTimeout(() => {
+                    tooltip.style.display = 'none';
+                }, duration);
+            }
+            
+            // Funciones de control
+            resetBtn.addEventListener('click', () => {
+                currentTransform = { x: 0, y: 0, scale: 1 };
+                updateMapTransform();
+                
+                if (selectedCountry) {
+                    selectedCountry.classList.remove('selected');
+                    selectedCountry.classList.remove('highlighted');
+                    selectedCountry = null;
+                }
+                
+                // Limpiar comparación
+                countriesToCompare.forEach(country => {
+                    country.element.classList.remove('selected');
+                });
+                countriesToCompare = [];
+                comparisonMode = false;
+                comparisonPanel.style.display = 'none';
+                compareBtn.textContent = 'Comparar';
+                compareBtn.classList.remove('warning');
+                
+                // Restablecer pestaña de información
+                document.getElementById('general-tab').innerHTML = `
+                    <p>Selecciona un país en el mapa para ver información detallada.</p>
+                    <p>También puedes usar la barra de búsqueda arriba para encontrar países específicos.</p>
+                `;
+                
+                // Ocultar otras pestañas
+                document.querySelectorAll('.tab-content:not(#general-tab)').forEach(tab => {
+                    tab.innerHTML = '';
+                });
+                
+                countrySearch.value = '';
+                
+                // Limpiar resaltados de búsqueda
+                document.querySelectorAll('.country.highlighted-search').forEach(country => {
+                    country.classList.remove('highlighted-search');
+                });
+                
+                // Cambiar a pestaña General
+                switchTab('general');
+            });
+            
+            zoomInBtn.addEventListener('click', () => {
+                currentTransform.scale *= 1.2;
+                if (currentTransform.scale > 5) currentTransform.scale = 5;
+                updateMapTransform();
+            });
+            
+            zoomOutBtn.addEventListener('click', () => {
+                currentTransform.scale *= 0.8;
+                if (currentTransform.scale < 0.5) currentTransform.scale = 0.5;
+                updateMapTransform();
+            });
+            
+            themeBtn.addEventListener('click', toggleTheme);
+            
+            function toggleTheme() {
+                darkMode = !darkMode;
+                document.body.classList.toggle('dark-theme', darkMode);
+                
+                if (darkMode) {
+                    themeBtn.innerHTML = '<i class="fas fa-sun"></i> Tema claro';
+                } else {
+                    themeBtn.innerHTML = '<i class="fas fa-moon"></i> Tema oscuro';
+                }
+            }
+            
+            compareBtn.addEventListener('click', toggleComparisonMode);
+            
+            function toggleComparisonMode() {
+                comparisonMode = !comparisonMode;
+                
+                if (comparisonMode) {
+                    compareBtn.classList.add('warning');
+                    showTooltip('Modo comparación: haz clic en países para compararlos', 3000);
+                } else {
+                    compareBtn.classList.remove('warning');
+                    
+                    // Limpiar selección de comparación pero mantener los países ya seleccionados
+                    document.querySelectorAll('.country').forEach(country => {
+                        if (!countriesToCompare.some(c => c.element.id === country.id)) {
+                            country.classList.remove('selected');
+                        }
+                    });
+                }
+            }
+            
+            clearComparisonBtn.addEventListener('click', () => {
+                countriesToCompare.forEach(country => {
+                    country.element.classList.remove('selected');
+                });
+                countriesToCompare = [];
+                comparisonPanel.style.display = 'none';
+                compareBtn.textContent = 'Comparar';
+                
+                // Si hay un país seleccionado, mostrar su información
+                if (selectedCountry) {
+                    showCountryInfo(selectedCountry.countryData);
+                }
+            });
+            
+            // Manejo de pestañas
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabId = tab.getAttribute('data-tab');
+                    switchTab(tabId);
+                });
+            });
+            
+            function switchTab(tabId) {
+                // Actualizar pestañas activas
+                tabs.forEach(tab => {
+                    tab.classList.remove('active');
+                    if (tab.getAttribute('data-tab') === tabId) {
+                        tab.classList.add('active');
+                    }
+                });
+                
+                // Actualizar contenido activo
+                tabContents.forEach(content => {
+                    content.classList.remove('active');
+                    if (content.id === `${tabId}-tab`) {
+                        content.classList.add('active');
+                    }
+                });
+                
+                // Si la pestaña de noticias está vacía, cargarla al activarla
+                if (tabId === 'news' && selectedCountry) {
+                    const newsTab = document.getElementById('news-tab');
+                    if (newsTab.innerHTML.trim() === '') {
+                        showNewsInfo(selectedCountry.countryData);
+                    }
+                }
+            }
+            
+            // Búsqueda de países
+            countrySearch.addEventListener('input', () => {
+                const searchTerm = countrySearch.value.toLowerCase();
+                
+                if (searchTerm.length < 2) {
+                    // Limpiar resaltados si la búsqueda es muy corta
+                    document.querySelectorAll('.country.highlighted-search').forEach(country => {
+                        if (!selectedCountry || country.id !== selectedCountry.id) {
+                            country.classList.remove('highlighted-search');
+                        }
+                    });
+                    return;
+                }
+                
+                // Resaltar países que coincidan con la búsqueda
+                let found = false;
+                countriesData.forEach(country => {
+                    const countryName = country.properties.name.toLowerCase();
+                    const path = document.getElementById(country.properties.name.replace(/\s+/g, '-'));
+                    
+                    if (path) {
+                        if (countryName.includes(searchTerm)) {
+                            path.classList.add('highlighted-search');
+                            found = true;
+                            
+                            // Si es una coincidencia exacta, centrar en ese país
+                            if (countryName === searchTerm) {
+                                const bbox = path.getBBox();
+                                currentTransform.x = -bbox.x * currentTransform.scale + (svg.clientWidth / 2 - bbox.width * currentTransform.scale / 2);
+                                currentTransform.y = -bbox.y * currentTransform.scale + (svg.clientHeight / 2 - bbox.height * currentTransform.scale / 2);
+                                updateMapTransform();
+                            }
+                        } else {
+                            if (!selectedCountry || path.id !== selectedCountry.id) {
+                                path.classList.remove('highlighted-search');
+                            }
+                        }
+                    }
+                });
+                
+                if (!found) {
+                    showTooltip('No se encontraron países', 2000);
+                }
+            });
+            
+            // Permitir búsqueda con Enter
+            countrySearch.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    const searchTerm = countrySearch.value.toLowerCase();
+                    const country = countriesData.find(c => 
+                        c.properties.name.toLowerCase() === searchTerm
+                    );
+                    
+                    if (country) {
+                        const path = document.getElementById(country.properties.name.replace(/\s+/g, '-'));
+                        if (path) {
+                            path.dispatchEvent(new Event('click'));
+                        }
+                    }
+                }
+            });
+            
+            // Cargar países visitados desde localStorage
+            const savedVisited = localStorage.getItem('visitedCountries');
+            if (savedVisited) {
+                visitedCountries = new Set(JSON.parse(savedVisited));
+                updateVisitedList();
+                updateStats();
+            }
+            
+            // Guardar países visitados en localStorage cuando cambien
+            window.addEventListener('beforeunload', () => {
+                localStorage.setItem('visitedCountries', JSON.stringify([...visitedCountries]));
+            });
+        });
+    </script>
+</body>
+</html>
